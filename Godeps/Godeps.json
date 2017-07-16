@@ -1,0 +1,40 @@
+{
+	"ImportPath": "github.com/tobyjsullivan/event-log-reader",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.3.0-5-g599cba5",
+			"Rev": "599cba5e7b6137d46ddf58fb1765f5d928e69604"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-171-g8837942",
+			"Rev": "8837942c3e09574accbc5f150e2c5e057189cace"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-171-g8837942",
+			"Rev": "8837942c3e09574accbc5f150e2c5e057189cace"
+		},
+		{
+			"ImportPath": "github.com/satori/go.uuid",
+			"Comment": "v1.1.0-6-gb061729",
+			"Rev": "b061729afc07e77a8aa4fad0a2fd840958f1942a"
+		},
+		{
+			"ImportPath": "github.com/tobyjsullivan/event-log/log",
+			"Rev": "16dd269800cb1ed20a0e71c67fd18b42d9affd7c"
+		},
+		{
+			"ImportPath": "github.com/tobyjsullivan/event-store.v3/events",
+			"Rev": "cdcf974dfe46e2921c6f96e6fb7427438a9d388a"
+		},
+		{
+			"ImportPath": "github.com/urfave/negroni",
+			"Comment": "v0.2.0-115-g1d8981a",
+			"Rev": "1d8981a52d6bda4467a9faacf3fdddd38222dfc4"
+		}
+	]
+}

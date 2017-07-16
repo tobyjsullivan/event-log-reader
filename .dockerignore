@@ -1,0 +1,10 @@
+.env
+data
+env
+.idea
+*.iml
+gin-bin
+Dockerfile
+Dockerfile-dev
+docker-compose.yml
+

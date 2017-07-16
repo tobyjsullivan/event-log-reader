@@ -1,0 +1,7 @@
+/gin-bin
+/.idea
+*.iml
+/data
+/.env
+/env/*.env
+

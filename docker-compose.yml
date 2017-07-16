@@ -1,0 +1,47 @@
+version: '3'
+services:
+  event-log-reader:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    volumes:
+    - .:/go/src/github.com/tobyjsullivan/event-log-reader
+    ports:
+    - "3000:3000"
+    depends_on:
+    - "db"
+    - "event-reader"
+    environment:
+    - EVENT_READER_API=http://event-reader:3000/
+    - PG_HOSTNAME=db
+    - PG_USERNAME=postgres
+    - PG_PASSWORD=pass1234
+    - PG_DATABASE=postgres
+  event-log:
+    image: tobyjsullivan/event-log:latest
+    ports:
+    - "3001:3000"
+    depends_on:
+    - "db"
+    - "event-store"
+    environment:
+    - EVENT_STORE_API=http://event-store:3000/
+    - PG_HOSTNAME=db
+    - PG_USERNAME=postgres
+    - PG_PASSWORD=pass1234
+    - PG_DATABASE=postgres
+  db:
+    image: tobyjsullivan/logs-db:latest
+    environment:
+    - POSTGRES_PASSWORD=pass1234
+    volumes:
+    - ./data:/var/lib/postgresql/data
+  event-reader:
+    image: tobyjsullivan/event-reader.v3
+    env_file:
+    - ./env/event-reader.env
+  event-store:
+    image: tobyjsullivan/event-store.v3
+    env_file:
+    - ./env/event-store.env
+
