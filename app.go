@@ -13,10 +13,10 @@ import (
 
     _ "github.com/lib/pq"
     eventLog "github.com/tobyjsullivan/event-log/log"
-    "github.com/tobyjsullivan/event-store.v3/events"
     "encoding/json"
-    "github.com/tobyjsullivan/event-log-reader/reader"
     "encoding/base64"
+    "github.com/tobyjsullivan/ues-sdk/event/reader"
+    "github.com/tobyjsullivan/ues-sdk/event"
 )
 
 
@@ -198,27 +198,27 @@ type eventJson struct {
     Data string `json:"data"`
 }
 
-func getLogHead(conn *sql.DB, id eventLog.LogID) (events.EventID, error) {
+func getLogHead(conn *sql.DB, id eventLog.LogID) (event.EventID, error) {
     var head []byte
     err := conn.QueryRow(`SELECT head FROM logs WHERE ext_lookup_key=$1`, id[:]).Scan(&head)
     if err != nil {
         logger.Println("Error executing SELECT for log head lookup.", err.Error())
-        return events.EventID{}, err
+        return event.EventID{}, err
     }
 
-    var out events.EventID
+    var out event.EventID
     copy(out[:], head)
     return out, nil
 }
 
-func getEventHistory(eventId events.EventID) ([]*events.Event, error) {
-    zero := events.EventID{}
+func getEventHistory(eventId event.EventID) ([]*event.Event, error) {
+    zero := event.EventID{}
 
-    out := make([]*events.Event, 0)
+    out := make([]*event.Event, 0)
     for eventId != zero {
-        e, err := eventReader.ReadEvent(eventId)
+        e, err := eventReader.GetEvent(eventId)
         if err != nil {
-            return []*events.Event{}, err
+            return []*event.Event{}, err
         }
 
         out = append(out, e)
