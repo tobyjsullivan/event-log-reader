@@ -38,10 +38,14 @@ services:
     - ./data:/var/lib/postgresql/data
   event-reader:
     image: tobyjsullivan/event-reader.v3
+    ports:
+    - "3002:3000"
     env_file:
     - ./env/event-reader.env
   event-store:
     image: tobyjsullivan/event-store.v3
+    ports:
+    - "3003:3000"
     env_file:
     - ./env/event-store.env
 

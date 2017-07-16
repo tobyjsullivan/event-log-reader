@@ -15,12 +15,15 @@ import (
     eventLog "github.com/tobyjsullivan/event-log/log"
     "github.com/tobyjsullivan/event-store.v3/events"
     "encoding/json"
+    "github.com/tobyjsullivan/event-log-reader/reader"
+    "encoding/base64"
 )
 
 
 var (
     logger     *log.Logger
     db         *sql.DB
+    eventReader *reader.EventReader
 )
 
 func init() {
@@ -39,6 +42,12 @@ func init() {
     db, err = sql.Open("postgres", dbConnOpts)
     if err != nil {
         logger.Println("Error initializing connection to Postgres DB.", err.Error())
+        panic(err.Error())
+    }
+
+    eventReader, err = reader.New(os.Getenv("EVENT_READER_API"))
+    if err != nil {
+        logger.Println("Error initializing Event Reader API.", err.Error())
         panic(err.Error())
     }
 }
@@ -62,6 +71,7 @@ func buildRoutes() http.Handler {
     r := mux.NewRouter()
     r.HandleFunc("/", statusHandler).Methods("GET")
     r.HandleFunc("/logs/{logId}", readLogHandler).Methods("GET")
+    r.HandleFunc("/logs/{logId}/events", readEventsHandler).Methods("GET")
 
     return r
 }
@@ -108,6 +118,65 @@ func readLogHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+func readEventsHandler(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    logIdParam := vars["logId"]
+    if logIdParam == "" {
+        http.Error(w, "Must supply logId in path.", http.StatusBadRequest)
+        return
+    }
+
+    logId := eventLog.LogID{}
+    err := logId.Parse(logIdParam)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    headEventId, err := getLogHead(db, logId)
+    if err == sql.ErrNoRows {
+        http.Error(w, err.Error(), http.StatusNotFound)
+        return
+    } else if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    events, err := getEventHistory(headEventId)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    jsonEvents := make([]*eventJson, len(events))
+    for i, e := range events {
+        id := e.ID()
+        strId := id.String()
+        strPrevId := e.PreviousEvent.String()
+        strData := base64.StdEncoding.EncodeToString(e.Data)
+
+        jsonEvents[i] = &eventJson{
+            EventID: strId,
+            PrevID: strPrevId,
+            Type: e.Type,
+            Data: strData,
+        }
+    }
+
+    resp := &jsonResponse{
+        Data: &readEventsResponse{
+            Events: jsonEvents,
+        },
+    }
+
+    encoder := json.NewEncoder(w)
+    err = encoder.Encode(resp)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+}
+
 type jsonResponse struct {
     Data interface{} `json:"data,omitempty"`
     Error string `json:"error,omitempty"`
@@ -116,6 +185,17 @@ type jsonResponse struct {
 type readLogResponse struct {
     LogID string `json:"logId"`
     Head string `json:"head"`
+}
+
+type readEventsResponse struct {
+    Events []*eventJson `json:"events"`
+}
+
+type eventJson struct {
+    EventID string `json:"eventId"`
+    PrevID string `json:"previousEventId"`
+    Type string `json:"type"`
+    Data string `json:"data"`
 }
 
 func getLogHead(conn *sql.DB, id eventLog.LogID) (events.EventID, error) {
@@ -131,3 +211,19 @@ func getLogHead(conn *sql.DB, id eventLog.LogID) (events.EventID, error) {
     return out, nil
 }
 
+func getEventHistory(eventId events.EventID) ([]*events.Event, error) {
+    zero := events.EventID{}
+
+    out := make([]*events.Event, 0)
+    for eventId != zero {
+        e, err := eventReader.ReadEvent(eventId)
+        if err != nil {
+            return []*events.Event{}, err
+        }
+
+        out = append(out, e)
+        eventId = e.PreviousEvent
+    }
+
+    return out, nil
+}
