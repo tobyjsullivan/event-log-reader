@@ -52,7 +52,6 @@ func init() {
     }
 }
 
-
 func main() {
     r := buildRoutes()
 
