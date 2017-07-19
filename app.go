@@ -45,7 +45,9 @@ func init() {
         panic(err.Error())
     }
 
-    eventReader, err = reader.New(os.Getenv("EVENT_READER_API"))
+    eventReader, err = reader.New(&reader.EventReaderConfig{
+        ServiceUrl: os.Getenv("EVENT_READER_API"),
+    })
     if err != nil {
         logger.Println("Error initializing Event Reader API.", err.Error())
         panic(err.Error())
