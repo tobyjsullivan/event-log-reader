@@ -17,6 +17,7 @@ import (
     "encoding/base64"
     "github.com/tobyjsullivan/ues-sdk/event/reader"
     "github.com/tobyjsullivan/ues-sdk/event"
+    "github.com/tobyjsullivan/event-log-reader/cache"
 )
 
 
@@ -24,6 +25,7 @@ var (
     logger     *log.Logger
     db         *sql.DB
     eventReader *reader.EventReader
+    eventCache *cache.EventCache
 )
 
 func init() {
@@ -52,6 +54,8 @@ func init() {
         logger.Println("Error initializing Event Reader API.", err.Error())
         panic(err.Error())
     }
+
+    eventCache = cache.New()
 }
 
 func main() {
@@ -217,7 +221,7 @@ func getEventHistory(eventId event.EventID) ([]*event.Event, error) {
 
     out := make([]*event.Event, 0)
     for eventId != zero {
-        e, err := eventReader.GetEvent(eventId)
+        e, err := getEvent(eventId)
         if err != nil {
             return []*event.Event{}, err
         }
@@ -227,4 +231,19 @@ func getEventHistory(eventId event.EventID) ([]*event.Event, error) {
     }
 
     return out, nil
+}
+
+func getEvent(id event.EventID) (*event.Event, error) {
+    if e, ok := eventCache.Get(id); ok {
+        return e, nil
+    }
+
+    e, err := eventReader.GetEvent(id)
+    if err != nil {
+        return nil, err
+    }
+
+    eventCache.Add(e)
+
+    return e, nil
 }
