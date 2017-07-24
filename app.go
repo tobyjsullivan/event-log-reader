@@ -134,6 +134,16 @@ func readEventsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    after := event.EventID{}
+    afterParam := r.URL.Query().Get("after")
+    if afterParam != "" {
+        err := after.Parse(afterParam)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusBadRequest)
+            return
+        }
+    }
+
     logId := eventLog.LogID{}
     err := logId.Parse(logIdParam)
     if err != nil {
@@ -150,24 +160,22 @@ func readEventsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    events, err := getEventHistory(headEventId)
+    events, err := getEventHistory(headEventId, after)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
 
-    jsonEvents := make([]*eventJson, len(events))
-    for i, e := range events {
+    l := len(events)
+    jsonEvents := make([]*eventJson, l)
+    for i := 0; i < l; i++ {
+        e := events[l - 1 - i]
         id := e.ID()
-        strId := id.String()
-        strPrevId := e.PreviousEvent.String()
-        strData := base64.StdEncoding.EncodeToString(e.Data)
 
         jsonEvents[i] = &eventJson{
-            EventID: strId,
-            PrevID: strPrevId,
+            EventID: id.String(),
             Type: e.Type,
-            Data: strData,
+            Data: base64.StdEncoding.EncodeToString(e.Data),
         }
     }
 
@@ -201,7 +209,6 @@ type readEventsResponse struct {
 
 type eventJson struct {
     EventID string `json:"eventId"`
-    PrevID string `json:"previousEventId"`
     Type string `json:"type"`
     Data string `json:"data"`
 }
@@ -219,18 +226,18 @@ func getLogHead(conn *sql.DB, id eventLog.LogID) (event.EventID, error) {
     return out, nil
 }
 
-func getEventHistory(eventId event.EventID) ([]*event.Event, error) {
+func getEventHistory(head event.EventID, last event.EventID) ([]*event.Event, error) {
     zero := event.EventID{}
 
     out := make([]*event.Event, 0)
-    for eventId != zero {
-        e, err := getEvent(eventId)
+    for head != last && head != zero {
+        e, err := getEvent(head)
         if err != nil {
             return []*event.Event{}, err
         }
 
         out = append(out, e)
-        eventId = e.PreviousEvent
+        head = e.PreviousEvent
     }
 
     return out, nil
