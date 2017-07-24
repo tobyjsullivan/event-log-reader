@@ -20,6 +20,9 @@ import (
     "github.com/tobyjsullivan/event-log-reader/cache"
 )
 
+const (
+    CACHE_MAX_KEYS = 50000
+)
 
 var (
     logger     *log.Logger
@@ -55,7 +58,7 @@ func init() {
         panic(err.Error())
     }
 
-    eventCache = cache.New()
+    eventCache = cache.New(CACHE_MAX_KEYS)
 }
 
 func main() {
