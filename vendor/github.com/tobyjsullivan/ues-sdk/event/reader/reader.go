@@ -5,7 +5,6 @@ import (
     "github.com/tobyjsullivan/ues-sdk/event"
     "net/http"
     "encoding/json"
-    "encoding/base64"
 )
 
 type EventReader struct {
@@ -51,7 +50,7 @@ func (svc *EventReader) GetEvent(id event.EventID) (*event.Event, error) {
         return nil, err
     }
 
-    parsedData, err := base64.StdEncoding.DecodeString(parsedResp.Data)
+    parsedData, err := event.ParseData(parsedResp.Data)
     if err != nil {
         return nil, err
     }

@@ -9,33 +9,41 @@ services:
     ports:
     - "3000:3000"
     depends_on:
-    - "db"
+    - "logs-db"
     - "event-reader"
+    - "redis"
     environment:
     - EVENT_READER_API=http://event-reader:3000/
-    - PG_HOSTNAME=db
+    - PG_HOSTNAME=logs-db
     - PG_USERNAME=postgres
     - PG_PASSWORD=pass1234
     - PG_DATABASE=postgres
+    - REDIS_HOSTNAME=redis
+    - REDIS_PORT=6379
+    - REDIS_PASSWORD=
+  redis:
+    image: redis:3.0
+    volumes:
+    - ./data/redis:/data
   event-log:
     image: tobyjsullivan/event-log:latest
     ports:
     - "3001:3000"
     depends_on:
-    - "db"
+    - "logs-db"
     - "event-store"
     environment:
     - EVENT_STORE_API=http://event-store:3000/
-    - PG_HOSTNAME=db
+    - PG_HOSTNAME=logs-db
     - PG_USERNAME=postgres
     - PG_PASSWORD=pass1234
     - PG_DATABASE=postgres
-  db:
+  logs-db:
     image: tobyjsullivan/logs-db:latest
     environment:
     - POSTGRES_PASSWORD=pass1234
     volumes:
-    - ./data:/var/lib/postgresql/data
+    - ./data/logs-db:/var/lib/postgresql/data
   event-reader:
     image: tobyjsullivan/event-reader.v3
     ports:

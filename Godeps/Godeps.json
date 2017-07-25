@@ -4,6 +4,36 @@
 	"GodepVersion": "v79",
 	"Deps": [
 		{
+			"ImportPath": "github.com/go-redis/redis",
+			"Comment": "v6.5.4-2-ge8e77ae",
+			"Rev": "e8e77ae5e4cc0f602eff702d57c5c30fdfdaace8"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal",
+			"Comment": "v6.5.4-2-ge8e77ae",
+			"Rev": "e8e77ae5e4cc0f602eff702d57c5c30fdfdaace8"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/consistenthash",
+			"Comment": "v6.5.4-2-ge8e77ae",
+			"Rev": "e8e77ae5e4cc0f602eff702d57c5c30fdfdaace8"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/hashtag",
+			"Comment": "v6.5.4-2-ge8e77ae",
+			"Rev": "e8e77ae5e4cc0f602eff702d57c5c30fdfdaace8"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/pool",
+			"Comment": "v6.5.4-2-ge8e77ae",
+			"Rev": "e8e77ae5e4cc0f602eff702d57c5c30fdfdaace8"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/proto",
+			"Comment": "v6.5.4-2-ge8e77ae",
+			"Rev": "e8e77ae5e4cc0f602eff702d57c5c30fdfdaace8"
+		},
+		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Comment": "v1.3.0-5-g599cba5",
 			"Rev": "599cba5e7b6137d46ddf58fb1765f5d928e69604"
@@ -25,11 +55,11 @@
 		},
 		{
 			"ImportPath": "github.com/tobyjsullivan/ues-sdk/event",
-			"Rev": "9e6fb864c088cc236f34324e954f4848febda7ae"
+			"Rev": "6270f32298e3b870dba482e8717d02e5fa53c5ac"
 		},
 		{
 			"ImportPath": "github.com/tobyjsullivan/ues-sdk/event/reader",
-			"Rev": "9e6fb864c088cc236f34324e954f4848febda7ae"
+			"Rev": "6270f32298e3b870dba482e8717d02e5fa53c5ac"
 		},
 		{
 			"ImportPath": "github.com/urfave/negroni",

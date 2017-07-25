@@ -18,6 +18,7 @@ import (
     "github.com/tobyjsullivan/ues-sdk/event/reader"
     "github.com/tobyjsullivan/ues-sdk/event"
     "github.com/tobyjsullivan/event-log-reader/cache"
+    "github.com/go-redis/redis"
 )
 
 const (
@@ -29,6 +30,7 @@ var (
     db         *sql.DB
     eventReader *reader.EventReader
     eventCache *cache.EventCache
+    redisClient *redis.Client
 )
 
 func init() {
@@ -59,6 +61,15 @@ func init() {
     }
 
     eventCache = cache.New(CACHE_MAX_KEYS)
+
+    redisClient = redis.NewClient(&redis.Options{
+        Addr: fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOSTNAME"), os.Getenv("REDIS_PORT")),
+        Password: os.Getenv("REDIS_PASSWORD"),
+        DB: 0,
+    })
+
+    pong, err := redisClient.Ping().Result()
+    logger.Println("Pong result:", pong, err)
 }
 
 func main() {
@@ -248,12 +259,52 @@ func getEvent(id event.EventID) (*event.Event, error) {
         return e, nil
     }
 
+    if e, ok := redisGet(id); ok {
+        return e, nil
+    }
+
     e, err := eventReader.GetEvent(id)
     if err != nil {
         return nil, err
     }
 
-    eventCache.Add(e)
+    go addToCaches(e)
 
     return e, nil
+}
+
+func addToCaches(e *event.Event) {
+    eventCache.Add(e)
+
+    redisSet(e)
+}
+
+func redisSet(e *event.Event) {
+    id := e.ID()
+
+    redisClient.Set(id.String(), e.String(), 0)
+}
+
+func redisGet(id event.EventID) (*event.Event, bool) {
+    res, err := redisClient.Get(id.String()).Result()
+    if err != nil {
+        if err != redis.Nil {
+            logger.Println("Redis error:", err.Error())
+        }
+        return nil, false
+    }
+
+    var e event.Event
+    err = e.Parse(res)
+    if err != nil {
+        logger.Println("Error deserializing redis result.", err.Error())
+        return nil, false
+    }
+    return &e, true
+}
+
+type redisEventSerializer struct {
+    PrevID string `json:"previousId"`
+    Type string `json:"type"`
+    Data string `json:"data"`
 }
