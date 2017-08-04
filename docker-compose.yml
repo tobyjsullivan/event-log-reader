@@ -26,7 +26,7 @@ services:
     volumes:
     - ./data/redis:/data
   event-log:
-    image: tobyjsullivan/event-log:latest
+    image: tobyjsullivan/event-log:1.0.0
     ports:
     - "3001:3000"
     depends_on:
@@ -39,19 +39,19 @@ services:
     - PG_PASSWORD=pass1234
     - PG_DATABASE=postgres
   logs-db:
-    image: tobyjsullivan/logs-db:latest
+    image: tobyjsullivan/logs-db:1.0.0
     environment:
     - POSTGRES_PASSWORD=pass1234
     volumes:
     - ./data/logs-db:/var/lib/postgresql/data
   event-reader:
-    image: tobyjsullivan/event-reader.v3
+    image: tobyjsullivan/event-reader:3.0.0
     ports:
     - "3002:3000"
     env_file:
     - ./env/event-reader.env
   event-store:
-    image: tobyjsullivan/event-store.v3
+    image: tobyjsullivan/event-store:3.0.0
     ports:
     - "3003:3000"
     env_file:
