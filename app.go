@@ -227,6 +227,11 @@ type eventJson struct {
 func getLogHead(conn *sql.DB, id eventLog.LogID) (event.EventID, error) {
     var head []byte
     err := conn.QueryRow(`SELECT head FROM logs WHERE ext_lookup_key=$1`, id[:]).Scan(&head)
+    if err == sql.ErrNoRows {
+        // Return the Zero Event if there is no record of the log (we treat an unknown log as an empty log)
+        return event.EventID{}, nil
+    }
+
     if err != nil {
         logger.Println("Error executing SELECT for log head lookup.", err.Error())
         return event.EventID{}, err
