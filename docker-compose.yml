@@ -7,7 +7,7 @@ services:
     volumes:
     - .:/go/src/github.com/tobyjsullivan/event-log-reader
     ports:
-    - "3000:3000"
+    - "6300:3000"
     depends_on:
     - "logs-db"
     - "event-reader"
@@ -26,9 +26,9 @@ services:
     volumes:
     - ./data/redis:/data
   event-log:
-    image: tobyjsullivan/event-log:1.0.0
+    image: tobyjsullivan/event-log:1.0
     ports:
-    - "3001:3000"
+    - "6301:3000"
     depends_on:
     - "logs-db"
     - "event-store"
@@ -39,21 +39,21 @@ services:
     - PG_PASSWORD=pass1234
     - PG_DATABASE=postgres
   logs-db:
-    image: tobyjsullivan/logs-db:1.0.0
+    image: tobyjsullivan/logs-db:1.0
     environment:
     - POSTGRES_PASSWORD=pass1234
     volumes:
     - ./data/logs-db:/var/lib/postgresql/data
   event-reader:
-    image: tobyjsullivan/event-reader:3.0.0
+    image: tobyjsullivan/event-reader:3.0
     ports:
-    - "3002:3000"
+    - "6302:3000"
     env_file:
     - ./env/event-reader.env
   event-store:
-    image: tobyjsullivan/event-store:3.0.0
+    image: tobyjsullivan/event-store:3.0
     ports:
-    - "3003:3000"
+    - "6303:3000"
     env_file:
     - ./env/event-store.env
 
